@@ -74,7 +74,7 @@ func (m *Manager) Start(ctx context.Context) error {
 }
 
 func (m *Manager) waitForReady(ctx context.Context) error {
-	url := fmt.Sprintf("http://localhost:%d/health", m.Port)
+	client := NewCoreClient("/tmp/shadowprism.sock", m.AuthToken)
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -83,8 +83,8 @@ func (m *Manager) waitForReady(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			resp, err := m.client.R().Get(url)
-			if err == nil && resp.StatusCode() == 200 {
+			_, err := client.GetStatus()
+			if err == nil {
 				return nil
 			}
 			// Check if process died early

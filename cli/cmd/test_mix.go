@@ -13,9 +13,10 @@ var testMixCmd = &cobra.Command{
 	Short: "Send a test shielding request to the core engine",
 	Run: func(cmd *cobra.Command, args []string) {
 		token := "dev-token-123"
-		client := sidecar.NewCoreClient(42069, token)
+		socketPath := "/tmp/shadowprism.sock"
+		client := sidecar.NewCoreClient(socketPath, token)
 
-		fmt.Println("🧪 Sending test shielding request...")
+		fmt.Println("🧪 Sending test shielding request via UDS...")
 		
 		payload := map[string]interface{}{
 			"amount_lamports":  1000000000,
