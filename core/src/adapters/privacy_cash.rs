@@ -4,7 +4,6 @@ use async_trait::async_trait;
 use std::sync::Arc;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
-    system_instruction,
     transaction::Transaction,
     signer::Signer,
     pubkey::Pubkey,
@@ -20,9 +19,6 @@ impl PrivacyProvider for PrivacyCashAdapter {
     }
 
     async fn shield(&self, req: ShieldRequest, keystore: Arc<PrismKeystore>) -> Result<ShieldResponse, String> {
-        // For a real "Privacy Cash" adapter, we would call their specific program.
-        // As a foundational step, we implement a signed Solana transfer on Devnet.
-        
         let rpc_url = "https://api.devnet.solana.com".to_string();
         let client = RpcClient::new(rpc_url);
         
@@ -37,7 +33,7 @@ impl PrivacyProvider for PrivacyCashAdapter {
             .map_err(|e| format!("Failed to get blockhash: {}", e))?;
 
         // 2. Create instruction
-        let ix = system_instruction::transfer(
+        let ix = solana_system_interface::instruction::transfer(
             &from_pubkey,
             &to_pubkey,
             req.amount_lamports,
