@@ -4,6 +4,8 @@ use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use std::path::Path;
 
+pub mod watchdog;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TransactionRecord {
     pub id: String,

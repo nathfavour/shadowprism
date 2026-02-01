@@ -41,8 +41,15 @@ async fn main() {
             Box::new(PrivacyCashAdapter),
             Box::new(RadrAdapter),
         ],
-        db: Mutex::new(store),
+        db: db_store.clone(),
         keystore,
+    });
+
+    // Start Watchdog
+    let watchdog_store = db_store.clone();
+    tokio::spawn(async move {
+        let watchdog = crate::db::watchdog::Watchdog::new(watchdog_store);
+        watchdog.start().await;
     });
 
     let app = Router::new()
