@@ -42,6 +42,7 @@ func (m *Manager) Start(ctx context.Context) error {
 		filepath.Join(cwd, "..", "core", "target", "debug", binaryName),
 		filepath.Join(cwd, "core", "target", "debug", binaryName),
 		filepath.Join(cwd, binaryName),
+		filepath.Join("/app", binaryName),
 	}
 
 	for _, path := range possiblePaths {

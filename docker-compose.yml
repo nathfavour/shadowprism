@@ -1,0 +1,16 @@
+services:
+  shadowprism:
+    build: .
+    container_name: shadowprism
+    restart: unless-stopped
+    volumes:
+      - shadowprism_data:/root/.shadowprism
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - SHADOWPRISM_AUTH_TOKEN=container-token-xyz
+    # Provide a TTY for potential TUI interaction or logs
+    stdin_open: true
+    tty: true
+
+volumes:
+  shadowprism_data:
