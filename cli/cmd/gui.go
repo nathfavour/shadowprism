@@ -29,7 +29,8 @@ var guiCmd = &cobra.Command{
 		}
 		defer manager.Stop()
 
-		p := tea.NewProgram(ui.InitialModel(), tea.WithAltScreen())
+		client := sidecar.NewCoreClient(cm.GetSocketPath(), authToken)
+		p := bubbletea.NewProgram(ui.InitialModel(client), bubbletea.WithAltScreen())
 		if _, err := p.Run(); err != nil {
 			fmt.Printf("Alas, there's been an error: %v", err)
 			os.Exit(1)

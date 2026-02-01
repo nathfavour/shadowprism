@@ -37,16 +37,59 @@ func NewCoreClient(socketPath string, token string) *CoreClient {
 }
 
 func (c *CoreClient) GetStatus() (map[string]interface{}, error) {
+
 	var result map[string]interface{}
+
 	resp, err := c.Http.R().
+
 		SetResult(&result).
+
 		Get("/health")
 
+
+
 	if err != nil {
+
 		return nil, err
+
 	}
+
 	if resp.IsError() {
+
 		return nil, fmt.Errorf("core error: %s", resp.Status())
+
 	}
+
 	return result, nil
+
+}
+
+
+
+func (c *CoreClient) GetHistory() ([]map[string]interface{}, error) {
+
+	var result []map[string]interface{}
+
+	resp, err := c.Http.R().
+
+		SetResult(&result).
+
+		Get("/v1/history")
+
+
+
+	if err != nil {
+
+		return nil, err
+
+	}
+
+	if resp.IsError() {
+
+		return nil, fmt.Errorf("core error: %s", resp.Status())
+
+	}
+
+	return result, nil
+
 }
