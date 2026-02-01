@@ -1,5 +1,7 @@
 use crate::adapters::{PrivacyProvider, ShieldRequest, ShieldResponse};
+use crate::keystore::PrismKeystore;
 use async_trait::async_trait;
+use std::sync::Arc;
 
 pub struct RadrAdapter;
 
@@ -9,10 +11,8 @@ impl PrivacyProvider for RadrAdapter {
         "radr_shadow_wire".to_string()
     }
 
-    async fn shield(&self, req: ShieldRequest) -> Result<ShieldResponse, String> {
-        // Mock implementation of Radr ShadowWire SDK
-        println!("Executing encrypted P2P transfer to {} via Radr", req.destination_addr);
-        
+    async fn shield(&self, req: ShieldRequest, _keystore: Arc<PrismKeystore>) -> Result<ShieldResponse, String> {
+        // Mock implementation for Radr
         Ok(ShieldResponse {
             status: "success".to_string(),
             tx_hash: "2zN...mock_radr_hash".to_string(),

@@ -11,6 +11,7 @@ pub struct AppState {
     pub range: crate::adapters::range::RangeClient,
     pub providers: Vec<Box<dyn crate::adapters::PrivacyProvider>>,
     pub db: Mutex<TransactionStore>,
+    pub keystore: Arc<crate::keystore::PrismKeystore>,
 }
 
 pub async fn shield_handler(
@@ -40,7 +41,7 @@ pub async fn shield_handler(
     };
 
     // 4. Execution
-    let result = provider.shield(payload).await
+    let result = provider.shield(payload, state.keystore.clone()).await
         .map_err(|e| {
             let db = state.db.lock().unwrap();
             let _ = db.update_status(&task_id, "Failed", None);

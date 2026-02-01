@@ -1,5 +1,7 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use crate::keystore::PrismKeystore;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ShieldRequest {
@@ -17,7 +19,7 @@ pub struct ShieldResponse {
 
 #[async_trait]
 pub trait PrivacyProvider: Send + Sync {
-    async fn shield(&self, req: ShieldRequest) -> Result<ShieldResponse, String>;
+    async fn shield(&self, req: ShieldRequest, keystore: Arc<PrismKeystore>) -> Result<ShieldResponse, String>;
     fn name(&self) -> String;
 }
 

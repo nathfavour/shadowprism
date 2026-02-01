@@ -32,6 +32,9 @@ async fn main() {
     db_path.push("prism.db");
     let store = TransactionStore::new(&db_path).expect("Failed to initialize SQLite database");
 
+    // Initialize Keystore
+    let keystore = Arc::new(crate::keystore::PrismKeystore::new().expect("Failed to initialize keystore"));
+
     let state = Arc::new(AppState {
         range: RangeClient::new(),
         providers: vec![
@@ -39,6 +42,7 @@ async fn main() {
             Box::new(RadrAdapter),
         ],
         db: Mutex::new(store),
+        keystore,
     });
 
     let app = Router::new()
