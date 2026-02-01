@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/charmbracelet/bubbletea"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/nathfavour/shadowprism/cli/internal/sidecar"
 	"github.com/nathfavour/shadowprism/cli/internal/ui"
 	"github.com/spf13/cobra"

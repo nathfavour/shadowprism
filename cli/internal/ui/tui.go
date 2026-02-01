@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbletea"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -25,26 +25,26 @@ type model struct {
 
 var (
 	sidebarStyle = lipgloss.NewStyle().
-		Width(20).
-		Border(lipgloss.NormalBorder(), false, true, false, false).
-		Padding(1, 2).
-		BorderForeground(lipgloss.Color("62"))
+			Width(20).
+			Border(lipgloss.NormalBorder(), false, true, false, false).
+			Padding(1, 2).
+			BorderForeground(lipgloss.Color("62"))
 
 	mainStyle = lipgloss.NewStyle().
-		Padding(1, 2)
+			Padding(1, 2)
 
 	titleStyle = lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("205")).
-		MarginBottom(1)
+			Bold(true).
+			Foreground(lipgloss.Color("205")).
+			MarginBottom(1)
 
 	selectedItemStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("62")).
-		Padding(0, 1)
+				Foreground(lipgloss.Color("229")).
+				Background(lipgloss.Color("62")).
+				Padding(0, 1)
 
 	inactiveItemStyle = lipgloss.NewStyle().
-		Padding(0, 1)
+				Padding(0, 1)
 )
 
 func InitialModel() model {
@@ -101,7 +101,7 @@ func (m model) View() string {
 	sidebar := sidebarStyle.Height(m.height - 4).Render(sidebarBuilder.String())
 
 	var mainContent string
-	sswitch m.state {
+	switch m.state {
 	case stateDashboard:
 		mainContent = m.renderDashboard()
 	case stateShield:

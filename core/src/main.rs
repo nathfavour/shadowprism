@@ -4,12 +4,9 @@ pub mod middleware;
 pub mod adapters;
 pub mod api;
 
-use ax_auth::AuthBearer;
 use axum::{
     routing::{get, post},
     Router,
-    extract::State,
-    middleware as axum_middleware,
 };
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -32,8 +29,8 @@ async fn main() {
     let app = Router::new()
         .route("/health", get(health_check))
         .route("/v1/shield", post(shield_handler))
-        .with_state(state)
-        .layer(axum_middleware::from_fn(middleware::auth_validator));
+        .layer(axum::middleware::from_fn(middleware::auth_validator))
+        .with_state(state);
 
     let port = std::env::var("PORT")
         .unwrap_or_else(|_| "42069".to_string())

@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.RootCmd{
+var rootCmd = &cobra.Command{
 	Use:   "shadowprism",
 	Short: "ShadowPrism is a privacy-first liquidity aggregator for Solana",
 	Long:  `A secure sidecar that routes Solana transactions through privacy protocols.`,

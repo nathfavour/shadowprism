@@ -1,0 +1,37 @@
+# Binaries
+/core/target/
+/cli/cli
+/cli/cli.exe
+shadowprism-core
+shadowprism-core.exe
+
+# Go
+go.sum
+vendor/
+*.exe
+*.test
+*.prof
+
+# Rust
+**/*.rs.bk
+Cargo.lock
+
+# Databases
+*.db
+*.db-journal
+
+# Environment & Secrets
+.env
+.env.*
+*.pem
+*.key
+
+# IDEs & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+/tmp/shadowprism.sock

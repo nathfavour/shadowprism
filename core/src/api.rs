@@ -3,12 +3,12 @@ use axum::{
     http::StatusCode,
     Json,
 };
-use crate::adapters::{ShieldRequest, ShieldResponse, PrivacyProvider, privacy_cash::PrivacyCashAdapter, radr::RadrAdapter, range::RangeClient};
+use crate::adapters::{ShieldRequest, ShieldResponse};
 use std::sync::Arc;
 
 pub struct AppState {
-    pub range: RangeClient,
-    pub providers: Vec<Box<dyn PrivacyProvider>>,
+    pub range: crate::adapters::range::RangeClient,
+    pub providers: Vec<Box<dyn crate::adapters::PrivacyProvider>>,
 }
 
 pub async fn shield_handler(
@@ -23,7 +23,7 @@ pub async fn shield_handler(
         return Err((StatusCode::FORBIDDEN, "High risk destination address".to_string()));
     }
 
-    // 2. Route Selection (Simple example: use Radr if strategy contains 'p2p')
+    // 2. Route Selection
     let provider = if payload.strategy.contains("p2p") {
         &state.providers[1] // Radr
     } else {
