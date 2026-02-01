@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex};
 pub struct AppState {
     pub range: crate::adapters::range::RangeClient,
     pub providers: Vec<Box<dyn crate::adapters::PrivacyProvider>>,
-    pub db: Mutex<TransactionStore>,
+    pub db: Arc<Mutex<TransactionStore>>,
     pub keystore: Arc<crate::keystore::PrismKeystore>,
 }
 
