@@ -31,6 +31,7 @@ async fn main() {
     let mut db_path = data_dir.clone();
     db_path.push("prism.db");
     let store = TransactionStore::new(&db_path).expect("Failed to initialize SQLite database");
+    let db_store = Arc::new(Mutex::new(store));
 
     // Initialize Keystore
     let keystore = Arc::new(crate::keystore::PrismKeystore::new().expect("Failed to initialize keystore"));
