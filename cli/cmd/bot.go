@@ -15,15 +15,26 @@ var botCmd = &cobra.Command{
 	Use:   "bot",
 	Short: "Start the ShadowPrism Telegram Bot",
 	Run: func(cmd *cobra.Command, args []string) {
-		token := os.Getenv("TELEGRAM_BOT_TOKEN")
+		cm, err := sidecar.NewConfigManager()
+		if err != nil {
+			fmt.Printf("❌ Error: %v\n", err)
+			os.Exit(1)
+		}
+
+		token, err := cm.LoadSecret("tg_bot_token")
+		if err != nil {
+			token = os.Getenv("TELEGRAM_BOT_TOKEN")
+		}
+
 		if token == "" {
-			fmt.Println("❌ Error: TELEGRAM_BOT_TOKEN environment variable is not set.")
+			fmt.Println("❌ Error: Telegram Bot token not found in config or environment.")
+			fmt.Println("Run: shadowprism config set-bot-token <your_token>")
 			os.Exit(1)
 		}
 
 		authToken := "dev-token-123"
 		manager := sidecar.NewManager(42069, authToken)
-		socketPath := "/tmp/shadowprism.sock"
+		socketPath := cm.GetSocketPath()
 		
 		fmt.Println("🚀 Starting ShadowPrism Core for Bot Mode...")
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

@@ -13,7 +13,12 @@ var testMixCmd = &cobra.Command{
 	Short: "Send a test shielding request to the core engine",
 	Run: func(cmd *cobra.Command, args []string) {
 		token := "dev-token-123"
-		socketPath := "/tmp/shadowprism.sock"
+		cm, err := sidecar.NewConfigManager()
+		if err != nil {
+			fmt.Printf("❌ Error: %v\n", err)
+			os.Exit(1)
+		}
+		socketPath := cm.GetSocketPath()
 		client := sidecar.NewCoreClient(socketPath, token)
 
 		fmt.Println("🧪 Sending test shielding request via UDS...")

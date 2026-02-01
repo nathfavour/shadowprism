@@ -74,7 +74,11 @@ func (m *Manager) Start(ctx context.Context) error {
 }
 
 func (m *Manager) waitForReady(ctx context.Context) error {
-	client := NewCoreClient("/tmp/shadowprism.sock", m.AuthToken)
+	cm, err := NewConfigManager()
+	if err != nil {
+		return err
+	}
+	client := NewCoreClient(cm.GetSocketPath(), m.AuthToken)
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
