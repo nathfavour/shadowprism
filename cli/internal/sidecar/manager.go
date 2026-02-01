@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"runtime"
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/nathfavour/shadowprism/cli/internal/embed"
 )
 
 type Manager struct {
@@ -29,32 +28,12 @@ func NewManager(port int, token string) *Manager {
 }
 
 func (m *Manager) Start(ctx context.Context) error {
-	// In a real build, we would extract the embedded binary here.
-	// For development, we look for the compiled binary in the core directory.
-	binaryName := "shadowprism-core"
-	if runtime.GOOS == "windows" {
-		binaryName += ".exe"
+	// Extract the embedded binary
+	binPath, err := embed.ExtractCore()
+	if err != nil {
+		return fmt.Errorf("failed to extract embedded core: %w", err)
 	}
-
-	// Look for binary in ../core/target/debug/ or current dir
-	cwd, _ := os.Getwd()
-	possiblePaths := []string{
-		filepath.Join(cwd, "..", "core", "target", "debug", binaryName),
-		filepath.Join(cwd, "core", "target", "debug", binaryName),
-		filepath.Join(cwd, binaryName),
-		filepath.Join("/app", binaryName),
-	}
-
-	for _, path := range possiblePaths {
-		if _, err := os.Stat(path); err == nil {
-			m.BinaryPath = path
-			break
-		}
-	}
-
-	if m.BinaryPath == "" {
-		return fmt.Errorf("core binary not found. please run 'cargo build' in /core")
-	}
+	m.BinaryPath = binPath
 
 	m.cmd = exec.CommandContext(ctx, m.BinaryPath)
 	m.cmd.Env = append(os.Environ(), 

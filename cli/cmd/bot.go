@@ -69,7 +69,7 @@ var botCmd = &cobra.Command{
 			if err != nil {
 				return c.Send("❌ Core Engine is unreachable.")
 			}
-			return c.Send(fmt.Sprintf("✅ *System Status*\nEngine: %v\nProtocol: %v\nStatus: %v", status["engine"], status["protocol"], status["status"])), tele.ModeMarkdown)
+			return c.Send(fmt.Sprintf("✅ *System Status*\nEngine: %v\nProtocol: %v\nStatus: %v", status["engine"], status["protocol"], status["status"]), tele.ModeMarkdown)
 		})
 
 		b.Handle("/shield", func(c tele.Context) error {
@@ -97,7 +97,7 @@ var botCmd = &cobra.Command{
 				return c.Send("❌ Shielding failed: Core communication error.")
 			}
 
-			return c.Send(fmt.Sprintf("✅ *Shield Success!*\n\n🔗 *TX:* `%v` \n🛡️ *Provider:* %v", result["tx_hash"], result["provider"])), tele.ModeMarkdown
+			return c.Send(fmt.Sprintf("✅ *Shield Success!*\n\n🔗 *TX:* `%v` \n🛡️ *Provider:* %v", result["tx_hash"], result["provider"]), tele.ModeMarkdown)
 		})
 
 		fmt.Println("🤖 Telegram Bot is now online!")
