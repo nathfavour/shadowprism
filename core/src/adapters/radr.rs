@@ -30,7 +30,7 @@ impl PrivacyProvider for RadrAdapter {
         // Simulating Radr's specific instruction logic + Helius Priority Fees
         let mut ixs = vec![];
         let priority_fee = rpc.get_priority_fee().await;
-        ixs.push(solana_sdk::compute_budget::ComputeBudgetInstruction::set_compute_unit_price(priority_fee));
+        ixs.push(solana_compute_budget_interface::ComputeBudgetInstruction::set_compute_unit_price(priority_fee));
         
         ixs.push(solana_system_interface::instruction::transfer(
             &from_pubkey,
