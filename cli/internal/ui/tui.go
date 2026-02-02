@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/nathfavour/shadowprism/cli/internal/agent"
 	"github.com/nathfavour/shadowprism/cli/internal/sidecar"
 )
 
@@ -36,6 +37,7 @@ type model struct {
 	client       *sidecar.CoreClient
 	lastStatus   map[string]interface{}
 	lastHistory  []map[string]interface{}
+	lastHint     string
 	inputs       []textinput.Model
 	focusedInput int
 	isWorking    bool
@@ -142,10 +144,21 @@ func (m *model) resetInputs() {
 	}
 }
 
+func (m model) fetchHint() tea.Cmd {
+	return func() tea.Msg {
+		pa := agent.NewPrismAgent()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		h, _ := pa.Talk(ctx, "Provide a random, very short Solana privacy tip.")
+		return hintMsg(h)
+	}
+}
+
 func (m model) Init() tea.Cmd {
 	return tea.Batch(
 		m.fetchStatus(),
 		m.fetchHistory(),
+		m.fetchHint(),
 		m.tick(),
 	)
 }
@@ -225,6 +238,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.lastStatus = msg
 	case historyMsg:
 		m.lastHistory = msg
+	case hintMsg:
+		m.lastHint = string(msg)
 	case shieldResultMsg:
 		m.isWorking = false
 		note := ""
@@ -245,7 +260,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.fetchHistory()
 
 	case tickMsg:
-		return m, tea.Batch(m.fetchStatus(), m.fetchHistory(), m.tick())
+		return m, tea.Batch(m.fetchStatus(), m.fetchHistory(), m.fetchHint(), m.tick())
 	case error:
 		m.err = msg
 		m.isWorking = false
@@ -400,6 +415,11 @@ func (m model) renderDashboard() string {
 		statusLine = fmt.Sprintf("Core Engine: %s [ONLINE]", statusStyle.Render(fmt.Sprintf("%v", m.lastStatus["engine"])))
 	}
 
+	hintLine := ""
+	if m.lastHint != "" {
+		hintLine = fmt.Sprintf("\n%s %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Bold(true).Render("🤖 Agent Insight:"), m.lastHint)
+	}
+
 	var historyBuilder strings.Builder
 	historyBuilder.WriteString(titleStyle.Render("Recent Transactions") + "\n")
 
@@ -414,9 +434,10 @@ func (m model) renderDashboard() string {
 	}
 
 	return fmt.Sprintf(
-		"%s\n%s\n\n%s",
+		"%s\n%s\n%s\n\n%s",
 		titleStyle.Render("System Dashboard"),
 		statusLine,
+		hintLine,
 		historyBuilder.String(),
 	)
 }

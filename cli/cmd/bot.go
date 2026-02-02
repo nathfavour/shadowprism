@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/nathfavour/shadowprism/cli/internal/agent"
 	"github.com/nathfavour/shadowprism/cli/internal/sidecar"
 	"github.com/spf13/cobra"
 	tele "gopkg.in/telebot.v3"
@@ -62,8 +63,7 @@ var botCmd = &cobra.Command{
 		}
 
 				client := sidecar.NewCoreClient(socketPath, authToken)
-
-		
+				pa := agent.NewPrismAgent()
 
 				// 1. Setup Bot Command Menu
 
@@ -411,6 +411,17 @@ var botCmd = &cobra.Command{
 
 					return c.Send(fmt.Sprintf("✅ *Swap Confirmed!*\n\n📤 *From:* `%.2f SOL` \n📥 *To:* `%.2f USDC` \n🔗 *TX:* `%v` \n🛡️ *Adapter:* `SilentSwap` ", amountSOL, float64(res["to_amount"].(float64))/1e9, res["tx_hash"]), tele.ModeMarkdown)
 
+				})
+
+				b.Handle(tele.OnText, func(c tele.Context) error {
+					ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+					defer cancel()
+
+					resp, err := pa.Talk(ctx, c.Text())
+					if err != nil {
+						return c.Send("🤖 _Agent is thinking..._ (Connection error)")
+					}
+					return c.Send("🤖 " + resp)
 				})
 
 		
