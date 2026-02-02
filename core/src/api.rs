@@ -110,11 +110,8 @@ pub async fn market_handler(
 }
 
 pub async fn get_task_handler(
-
     State(state): State<Arc<AppState>>,
-
     Path(id): Path<String>,
-
 ) -> Result<Json<TransactionRecord>, (StatusCode, String)> {
 
     let db = state.db.lock().unwrap();

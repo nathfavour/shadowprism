@@ -33,21 +33,9 @@ var botCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		                authToken := "dev-token-123"
+		authToken := "dev-token-123"
 
-		                passphrase := os.Getenv("PRISM_PASSPHRASE")
-
-		                if passphrase == "" {
-
-		                        fmt.Println("❌ Error: PRISM_PASSPHRASE not set. It is required to unlock the secure keystore.")
-
-		                        os.Exit(1)
-
-		                }
-
-		
-
-		                manager := sidecar.NewManager(42069, authToken, passphrase)
+		manager := sidecar.NewManager(42069, authToken)
 
 		
 		socketPath := cm.GetSocketPath()

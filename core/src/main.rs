@@ -9,6 +9,7 @@ use axum::{
     Router,
 };
 use std::sync::{Arc, Mutex};
+use rand::Rng;
 use crate::api::{AppState, shield_handler, get_task_handler, get_history_handler, swap_handler, pay_handler, market_handler};
 use crate::adapters::{
     privacy_cash::PrivacyCashAdapter, 
@@ -42,9 +43,28 @@ async fn main() {
     let db_store = Arc::new(Mutex::new(store));
 
     // Initialize Keystore
-    let passphrase = std::env::var("PRISM_PASSPHRASE")
-        .unwrap_or_else(|_| "shadow-prism-default-pass".to_string());
-    
+    let mut master_key_path = data_dir.clone();
+    master_key_path.push(".master");
+
+    let passphrase = if master_key_path.exists() {
+        std::fs::read_to_string(&master_key_path).expect("Failed to read master key")
+    } else {
+        let new_key: String = rand::thread_rng()
+            .sample_iter(&rand::distributions::Alphanumeric)
+            .take(64)
+            .map(char::from)
+            .collect();
+        std::fs::write(&master_key_path, &new_key).expect("Failed to initialize master key");
+        
+        // Set restrictive permissions on the master key file
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&master_key_path, std::fs::Permissions::from_mode(0o600)).unwrap();
+        }
+        new_key
+    };
+
     let mut keystore_path = data_dir.clone();
     keystore_path.push("wallet.prism");
     
@@ -80,7 +100,7 @@ async fn main() {
         .route("/v1/swap", post(swap_handler))
         .route("/v1/pay", post(pay_handler))
         .route("/v1/market", get(market_handler))
-        .route("/v1/tasks/:id", get(get_task_handler))
+        .route("/v1/tasks/{id}", get(get_task_handler))
         .route("/v1/history", get(get_history_handler))
         .layer(axum::middleware::from_fn(middleware::auth_validator))
         .with_state(state);
