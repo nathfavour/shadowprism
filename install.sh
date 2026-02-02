@@ -54,18 +54,11 @@ if [ -d "cli" ]; then
     cd cli
     go build -o shadowprism .
     
-    # Determine install location
+    # Enforce ~/.local/bin
     INSTALL_DIR="$HOME/.local/bin"
-    if [[ ":$PATH:" != ":$HOME/.local/bin:"* ]]
-    then
-        if [ -w "/usr/local/bin" ]; then
-            INSTALL_DIR="/usr/local/bin"
-        else
-            echo -e "${YELLOW}⚠️  $HOME/.local/bin is not in your PATH.${NC}"
-        fi
-    fi
-    
     mkdir -p "$INSTALL_DIR"
+    
+    echo -e "${BLUE}🚚 Installing binary to $INSTALL_DIR...${NC}"
     cp shadowprism "$INSTALL_DIR/"
     cd ..
 else
@@ -81,11 +74,9 @@ echo -e "⚙️  ${BLUE}Core Engine:${NC}  $PRISM_HOME/bin/shadowprism-core"
 echo -e "📂 ${BLUE}Config Dir:${NC}   $PRISM_HOME"
 echo -e "${BLUE}--------------------------------------------------${NC}"
 
-if [[ ":$PATH:" != ":$INSTALL_DIR:"* ]]
-then
+if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
     echo -e "${YELLOW}👉 Note: Please add $INSTALL_DIR to your PATH to run 'shadowprism' from anywhere.${NC}"
-    echo -e "   export PATH=\"
-$PATH:$INSTALL_DIR\"
+    echo -e "   export PATH=\"\$PATH:$INSTALL_DIR\""
 fi
 
 echo -e "\nRun ${GREEN}shadowprism --help${NC} to get started."
