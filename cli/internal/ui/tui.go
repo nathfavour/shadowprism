@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -27,6 +28,7 @@ type historyMsg []map[string]interface{}
 type shieldResultMsg map[string]interface{}
 type swapResultMsg map[string]interface{}
 type payResultMsg map[string]interface{}
+type hintMsg string
 type tickMsg time.Time
 
 type model struct {

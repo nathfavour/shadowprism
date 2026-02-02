@@ -3,21 +3,16 @@ package agent
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
 var (
-	agentStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("205")),
-			Bold(true)
-	
-hintStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("62")),
-			Italic(true)
+	agentStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Bold(true)
+	hintStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("62")).Italic(true)
 )
 
 type PrismAgent struct {
@@ -31,6 +26,11 @@ func NewPrismAgent() *PrismAgent {
 }
 
 func (a *PrismAgent) Talk(ctx context.Context, prompt string) (string, error) {
+	// Check if vibeaura exists
+	if _, err := os.Stat(a.VibePath); os.IsNotExist(err) {
+		return "I'm currently operating in offline mode. Please install the 'vibeaura' agent to enable advanced AI insights.", nil
+	}
+
 	// We want concise, conversational responses
 	fullPrompt := "You are ShadowPrism AI, a privacy-first assistant for Solana. " +
 		"Provide a very concise, professional, and slightly futuristic response (max 2 sentences). " +
@@ -64,5 +64,4 @@ func (a *PrismAgent) GetHint(ctx context.Context, action string) {
 			a.DisplayHint(h)
 		}
 	}()
-	// Small sleep to allow some output flow if desired, but usually we just let it go
 }

@@ -79,6 +79,10 @@ var botCmd = &cobra.Command{
 
 					{Text: "market", Description: "Check Privacy Market (Encrypt.trade)"},
 
+					{Text: "chat", Description: "Talk to ShadowPrism AI Assistant"},
+
+					{Text: "agent", Description: "PNP Agent-to-Agent Simulation"},
+
 					{Text: "history", Description: "View Shielded History"},
 
 					{Text: "status", Description: "System Health & RPC Failover"},
