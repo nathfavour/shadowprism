@@ -34,7 +34,13 @@ async fn main() {
     let db_store = Arc::new(Mutex::new(store));
 
     // Initialize Keystore
-    let keystore = Arc::new(crate::keystore::PrismKeystore::new().expect("Failed to initialize keystore"));
+    let passphrase = std::env::var("PRISM_PASSPHRASE")
+        .expect("PRISM_PASSPHRASE environment variable not set");
+    let mut keystore_path = data_dir.clone();
+    keystore_path.push("wallet.prism");
+    
+    let keystore = Arc::new(crate::keystore::PrismKeystore::load_or_create(&keystore_path, &passphrase)
+        .expect("Failed to initialize encrypted keystore"));
 
     let state = Arc::new(AppState {
         range: RangeClient::new(),
