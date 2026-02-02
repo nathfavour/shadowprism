@@ -1,12 +1,11 @@
 # Binaries
 /core/target/
-/cli/cli
-/cli/cli.exe
+/cli/shadowprism
+/cli/internal/embed/core_bin
 shadowprism-core
 shadowprism-core.exe
 
 # Go
-go.sum
 vendor/
 *.exe
 *.test
@@ -14,7 +13,6 @@ vendor/
 
 # Rust
 **/*.rs.bk
-Cargo.lock
 
 # Databases
 *.db
@@ -35,3 +33,4 @@ Thumbs.db
 # Logs
 *.log
 /tmp/shadowprism.sock
+/root/.shadowprism/engine.sock
