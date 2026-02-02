@@ -241,13 +241,87 @@ var botCmd = &cobra.Command{
 
 		
 
-				// 4. Interactive Callbacks
+						// 4. Interactive Callbacks
 
-				b.Handle(&btnMarket, func(c tele.Context) error {
+		
 
-					return b.Send(c.Recipient(), "Checking market...") // Simple feedback
+						b.Handle(&btnMarket, func(c tele.Context) error {
 
-				})
+		
+
+							return c.Send("📊 *Checking market data via Encrypt.trade...*", tele.ModeMarkdown)
+
+		
+
+						})
+
+		
+
+				
+
+		
+
+						b.Handle(&btnShield, func(c tele.Context) error {
+
+		
+
+							return c.Send("🕵️ To anonymize SOL, use: `/shield [amount]`", tele.ModeMarkdown)
+
+		
+
+						})
+
+		
+
+				
+
+		
+
+						b.Handle(&btnSwap, func(c tele.Context) error {
+
+		
+
+							return c.Send("🔄 To execute a private swap, use: `/swap [amount]`", tele.ModeMarkdown)
+
+		
+
+						})
+
+		
+
+				
+
+		
+
+						b.Handle(&btnPay, func(c tele.Context) error {
+
+		
+
+							return c.Send("💳 To pay a merchant privately, use: `/pay [merchant_id] [amount]`", tele.ModeMarkdown)
+
+		
+
+						})
+
+		
+
+				
+
+		
+
+						b.Handle(&btnHistory, func(c tele.Context) error {
+
+		
+
+							return c.Send("📜 Use `/history` to view your encrypted transaction log.", tele.ModeMarkdown)
+
+		
+
+						})
+
+		
+
+				
 
 		
 

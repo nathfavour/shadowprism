@@ -1,17 +1,28 @@
 use reqwest::Client;
 use std::time::{Duration, Instant};
 use std::sync::Mutex;
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct JupiterPriceResponse {
+    data: std::collections::HashMap<String, JupiterPriceData>,
+}
+
+#[derive(Deserialize)]
+struct JupiterPriceData {
+    price: f64,
+}
 
 pub struct MarketOracle {
-    _client: Client,
+    client: Client,
     cache: Mutex<Option<(f64, Instant)>>,
 }
 
 impl MarketOracle {
     pub fn new() -> Self {
         Self {
-            _client: Client::builder()
-                .timeout(Duration::from_secs(2))
+            client: Client::builder()
+                .timeout(Duration::from_secs(5))
                 .build()
                 .unwrap(),
             cache: Mutex::new(None),
@@ -29,13 +40,11 @@ impl MarketOracle {
             }
         }
 
-        // 2. Fetch from Encrypt.trade (Mocked for Hackathon)
-        // In production: https://api.encrypt.trade/v1/price/SOL-USD
-        let price = match self.fetch_price_from_api().await {
+        // 2. Fetch from Jupiter Price API (Real Data)
+        let price = match self.fetch_price_from_jup().await {
             Ok(p) => p,
-            Err(_) => {
-                // Fallback to a static price if API is down
-                println!("⚠️  Encrypt.trade API unreachable, using fallback price.");
+            Err(e) => {
+                println!("⚠️  Market API error: {}. Using fallback price.", e);
                 142.65 
             }
         };
@@ -47,10 +56,18 @@ impl MarketOracle {
         price
     }
 
-    async fn fetch_price_from_api(&self) -> Result<f64, String> {
-        // Mocking the API response for the hackathon demo
-        // This demonstrates the integration point
-        Ok(142.65)
+    async fn fetch_price_from_jup(&self) -> Result<f64, String> {
+        let url = "https://api.jup.ag/price/v2?ids=So11111111111111111111111111111111111111112";
+        let resp = self.client.get(url)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+        
+        let data: JupiterPriceResponse = resp.json().await.map_err(|e| e.to_string())?;
+        
+        data.data.get("So11111111111111111111111111111111111111112")
+            .map(|d| d.price)
+            .ok_or_else(|| "SOL price not found in response".to_string())
     }
 
     pub fn format_usd(&self, lamports: u64, sol_price: f64) -> String {

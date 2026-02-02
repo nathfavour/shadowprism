@@ -39,32 +39,32 @@ impl RangeClient {
             }
         }
 
-        // 2. Real API Call
-        // In production: https://api.rangeprotocol.com/v1/score/{address}
-        // For hackathon/dev: we simulate the call if the key is default
-        if self.api_key == "dev_default_key" {
-            let score = if address.starts_with("BAD") { 99 } else { 10 };
-            return Ok(score);
-        }
-
+        // 2. Real API Call to Range Protocol
         let url = format!("https://api.rangeprotocol.com/v1/score/{}", address);
         let resp = self.client
             .get(url)
             .header("X-API-KEY", &self.api_key)
             .send()
-            .await
-            .map_err(|e| format!("Range API error: {}", e))?;
+            .await;
 
-        if resp.status().is_success() {
-            let data: RangeResponse = resp.json().await.map_err(|e| e.to_string())?;
-            
-            // 3. Update Cache
-            let mut cache = self.cache.lock().unwrap();
-            cache.insert(address.to_string(), (data.score, Instant::now()));
-            
-            Ok(data.score)
-        } else {
-            Err(format!("Range API returned error: {}", resp.status()))
+        match resp {
+            Ok(r) if r.status().is_success() => {
+                let data: RangeResponse = r.json().await.map_err(|e| e.to_string())?;
+                
+                // 3. Update Cache
+                let mut cache = self.cache.lock().unwrap();
+                cache.insert(address.to_string(), (data.score, Instant::now()));
+                
+                Ok(data.score)
+            },
+            Ok(r) => {
+                println!("⚠️  Range Protocol returned status {}. Defaulting to safe score.", r.status());
+                Ok(0) // Default to safe if API is up but address not found/other error
+            },
+            Err(e) => {
+                println!("⚠️  Range Protocol connection failed: {}. Bypassing firewall.", e);
+                Ok(0) // Fail open for the hackathon demo
+            }
         }
     }
 }

@@ -1,9 +1,13 @@
 use solana_client::rpc_client::RpcClient;
 use std::env;
+use reqwest::Client;
+use serde_json::json;
 
 pub struct ReliableClient {
     primary: RpcClient,
     secondary: Option<RpcClient>,
+    http_client: Client,
+    primary_url: String,
 }
 
 impl ReliableClient {
@@ -14,14 +18,14 @@ impl ReliableClient {
         let secondary_url = env::var("QUICKNODE_RPC_URL").ok();
 
         Self {
-            primary: RpcClient::new(primary_url),
+            primary: RpcClient::new(primary_url.clone()),
             secondary: secondary_url.map(RpcClient::new),
+            http_client: Client::new(),
+            primary_url,
         }
     }
 
     pub fn get_client(&self) -> &RpcClient {
-        // Simple logic: If we had a way to health-check, we would switch here.
-        // For now, it returns the primary, but adapters can use .failover()
         &self.primary
     }
 
@@ -34,7 +38,7 @@ impl ReliableClient {
             Ok(sig) => Ok(sig),
             Err(e) => {
                 if let Some(ref secondary) = self.secondary {
-                    println!("⚠️ [Failover] Primary RPC (Helius) failed/timed out. Routing to QuickNode...");
+                    println!("⚠️ [Failover] Primary RPC (Helius) failed. Routing to QuickNode...");
                     secondary.send_and_confirm_transaction(tx)
                         .map_err(|e2| format!("Both RPCs failed. Helius: {}, QuickNode: {}", e, e2))
                 } else {
@@ -45,11 +49,45 @@ impl ReliableClient {
     }
 
     pub async fn get_priority_fee(&self) -> u64 {
-        // In production: Query Helius Priority Fee API
-        // For hackathon: Simulate a dynamic fee based on network "congestion"
-        let base_fee = 5000;
-        let jitter = rand::random::<u64>() % 2000;
-        println!("🚀 [Helius] Calculating optimal priority fee: {} micro-lamports", base_fee + jitter);
-        base_fee + jitter
+        // Real Helius Priority Fee API call
+        if self.primary_url.contains("helius-rpc.com") || self.primary_url.contains("helius.xyz") {
+            let body = json!({
+                "jsonrpc": "2.0",
+                "id": "priority-fee-estimate",
+                "method": "getPriorityFeeEstimate",
+                "params": [{
+                    "accountKeys": ["JUP6LkbZbjS1jKKpphsRLSKE6t124vR9f8jP26CAtv6"], // Sample high-activity account
+                    "options": {
+                        "recommended": true
+                    }
+                }]
+            });
+
+            if let Ok(resp) = self.http_client.post(&self.primary_url)
+                .json(&body)
+                .send()
+                .await {
+                if let Ok(json) = resp.json::<serde_json::Value>().await {
+                    if let Some(estimate) = json["result"]["priorityFeeEstimate"].as_f64() {
+                        println!("🚀 [Helius] Real-time priority fee estimate: {} micro-lamports", estimate);
+                        return estimate as u64;
+                    }
+                }
+            }
+        }
+
+        // Fallback to standard Solana RPC if Helius fails or isn't used
+        match self.primary.get_recent_prioritization_fees(&[]) {
+            Ok(fees) => {
+                let avg = if !fees.is_empty() {
+                    fees.iter().map(|f| f.prioritization_fee).sum::<u64>() / fees.len() as u64
+                } else {
+                    5000
+                };
+                println!("🚀 [RPC] Using average prioritization fee: {} micro-lamports", avg);
+                avg
+            },
+            Err(_) => 5000,
+        }
     }
 }
