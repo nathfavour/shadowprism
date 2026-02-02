@@ -6,29 +6,43 @@ use solana_sdk::{
     transaction::Transaction,
     signer::Signer,
     pubkey::Pubkey,
+    instruction::{Instruction, AccountMeta},
 };
 use std::str::FromStr;
 
 pub struct SilentSwapAdapter;
 
+impl SilentSwapAdapter {
+    pub const PROGRAM_ID: &str = "SSwapX1111111111111111111111111111111111111";
+}
+
 #[async_trait]
 impl SwapProvider for SilentSwapAdapter {
     async fn swap(&self, req: SwapRequest, keystore: Arc<PrismKeystore>, rpc: Arc<ReliableClient>) -> Result<SwapResponse, String> {
         let from_pubkey = keystore.main_keypair.pubkey();
+        let program_id = Pubkey::from_str(Self::PROGRAM_ID).unwrap();
         
-        println!("🔄 [SilentSwap] Executing private swap: {} {} -> {}", 
-            req.amount_lamports, req.from_token, req.to_token);
+        println!("🔄 [SilentSwap] Executing private swap: {} {} -> {} via {}", 
+            req.amount_lamports, req.from_token, req.to_token, Self::PROGRAM_ID);
 
         let recent_blockhash = rpc.get_client().get_latest_blockhash()
             .map_err(|e| format!("Failed to get blockhash: {}", e))?;
 
-        // Simulating a swap via a transfer to a vault (placeholder)
-        let vault_pubkey = Pubkey::from_str("SwapVau1t11111111111111111111111111111111").unwrap();
-        let ix = solana_system_interface::instruction::transfer(
-            &from_pubkey,
-            &vault_pubkey,
-            req.amount_lamports,
-        );
+        // Constructing a realistic SilentSwap instruction
+        // Discriminator for 'Swap' (8 bytes) + Amount (8 bytes)
+        let mut data = vec![0u8; 16];
+        data[0..8].copy_from_slice(&[248, 198, 137, 82, 225, 242, 182, 35]); // Mock discriminator
+        data[8..16].copy_from_slice(&req.amount_lamports.to_le_bytes());
+
+        let ix = Instruction {
+            program_id,
+            accounts: vec![
+                AccountMeta::new(from_pubkey, true),
+                AccountMeta::new(Pubkey::from_str("JUP6LkbZbjS1jKKpphsRLSKE6t124vR9f8jP26CAtv6").unwrap(), false), // Market account
+                AccountMeta::new_readonly(solana_sdk::system_program::id(), false),
+            ],
+            data,
+        };
 
         let mut tx = Transaction::new_with_payer(
             &[ix],
@@ -39,8 +53,13 @@ impl SwapProvider for SilentSwapAdapter {
 
         let signature = rpc.send_transaction_reliable(&tx)?;
 
-        // Mocking return amounts
-        let to_amount = (req.amount_lamports as f64 * 0.99) as u64; // 1% slippage/fee mock
+        // Mocking return amounts with a realistic logic
+        let sol_price = 145.0; // Sample price if we don't call oracle here
+        let to_amount = if req.from_token == "SOL" {
+            (req.amount_lamports as f64 / 1e9 * sol_price * 0.995 * 1e6) as u64 // SOL -> USDC (1e6 decimals)
+        } else {
+            (req.amount_lamports as f64 / 1e6 / sol_price * 0.995 * 1e9) as u64 // USDC -> SOL (1e9 decimals)
+        };
 
         Ok(SwapResponse {
             status: "success".to_string(),
