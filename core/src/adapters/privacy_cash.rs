@@ -1,8 +1,7 @@
-use crate::adapters::{PrivacyProvider, ShieldRequest, ShieldResponse};
+use crate::adapters::{PrivacyProvider, ShieldRequest, ShieldResponse, rpc::ReliableClient};
 use crate::keystore::PrismKeystore;
 use async_trait::async_trait;
 use std::sync::Arc;
-use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
     transaction::Transaction,
     signer::Signer,
@@ -20,28 +19,22 @@ impl PrivacyProvider for PrivacyCashAdapter {
         "privacy_cash".to_string()
     }
 
-    async fn shield(&self, req: ShieldRequest, keystore: Arc<PrismKeystore>) -> Result<ShieldResponse, String> {
-        // In a real implementation, we would load the Privacy Cash Program ID
-        // let program_id = Pubkey::from_str("PrivCash11111111111111111111111111111111").unwrap();
-        
-        let rpc_url = "https://api.devnet.solana.com".to_string();
-        let client = RpcClient::new(rpc_url);
-        
+    async fn shield(&self, req: ShieldRequest, keystore: Arc<PrismKeystore>, rpc: Arc<ReliableClient>) -> Result<ShieldResponse, String> {
         let from_pubkey = keystore.main_keypair.pubkey();
         let to_pubkey = Pubkey::from_str(&req.destination_addr)
             .map_err(|e| format!("Invalid destination address: {}", e))?;
 
         println!("🛡️ [Privacy Cash] Preparing shielded deposit of {} lamports", req.amount_lamports);
 
-        // 1. Fetch recent blockhash
-        let recent_blockhash = client.get_latest_blockhash()
+        // 1. Fetch recent blockhash via Reliable Client
+        let recent_blockhash = rpc.get_client().get_latest_blockhash()
             .map_err(|e| format!("Failed to get blockhash: {}", e))?;
 
         // 2. Create instructions
         let mut ixs = vec![];
         
         // Add Priority Fee (Helius Integration)
-        let priority_fee = 5000; // Simulated from Helius API
+        let priority_fee = rpc.get_priority_fee().await;
         ixs.push(solana_sdk::compute_budget::ComputeBudgetInstruction::set_compute_unit_price(priority_fee));
 
         // Add Mixer Deposit
@@ -59,9 +52,8 @@ impl PrivacyProvider for PrivacyCashAdapter {
         
         tx.sign(&[&keystore.main_keypair], recent_blockhash);
 
-        // 4. Broadcast
-        let signature = client.send_and_confirm_transaction(&tx)
-            .map_err(|e| format!("Transaction failed: {}", e))?;
+        // 4. Broadcast with Failover support
+        let signature = rpc.send_transaction_reliable(&tx)?;
 
         // 5. Generate "Privacy Note" (The secret required to withdraw later)
         // This is a key requirement of the Privacy Cash protocol integration

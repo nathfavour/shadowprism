@@ -47,20 +47,22 @@ pub struct PayResponse {
     pub receipt_id: String,
 }
 
+use crate::adapters::rpc::ReliableClient;
+
 #[async_trait]
 pub trait PrivacyProvider: Send + Sync {
-    async fn shield(&self, req: ShieldRequest, keystore: Arc<PrismKeystore>) -> Result<ShieldResponse, String>;
+    async fn shield(&self, req: ShieldRequest, keystore: Arc<PrismKeystore>, rpc: Arc<ReliableClient>) -> Result<ShieldResponse, String>;
     fn name(&self) -> String;
 }
 
 #[async_trait]
 pub trait SwapProvider: Send + Sync {
-    async fn swap(&self, req: SwapRequest, keystore: Arc<PrismKeystore>) -> Result<SwapResponse, String>;
+    async fn swap(&self, req: SwapRequest, keystore: Arc<PrismKeystore>, rpc: Arc<ReliableClient>) -> Result<SwapResponse, String>;
 }
 
 #[async_trait]
 pub trait PaymentProvider: Send + Sync {
-    async fn pay(&self, req: PayRequest, keystore: Arc<PrismKeystore>) -> Result<PayResponse, String>;
+    async fn pay(&self, req: PayRequest, keystore: Arc<PrismKeystore>, rpc: Arc<ReliableClient>) -> Result<PayResponse, String>;
 }
 
 pub mod privacy_cash;

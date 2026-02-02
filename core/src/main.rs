@@ -17,6 +17,7 @@ use crate::adapters::{
     market::MarketOracle,
     silent_swap::SilentSwapAdapter,
     starpay::StarpayAdapter,
+    rpc::ReliableClient,
 };
 use crate::db::TransactionStore;
 
@@ -50,7 +51,10 @@ async fn main() {
     let keystore = Arc::new(crate::keystore::PrismKeystore::load_or_create(&keystore_path, &passphrase)
         .expect("Failed to initialize encrypted keystore"));
 
+    let rpc = Arc::new(ReliableClient::new());
+
     let state = Arc::new(AppState {
+        rpc,
         range: RangeClient::new(),
         market: MarketOracle::new(),
         providers: vec![

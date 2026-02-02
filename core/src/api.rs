@@ -15,6 +15,7 @@ use std::sync::{Arc, Mutex};
 use serde_json::json;
 
 pub struct AppState {
+    pub rpc: Arc<crate::adapters::rpc::ReliableClient>,
     pub range: crate::adapters::range::RangeClient,
     pub market: MarketOracle,
     pub providers: Vec<Box<dyn crate::adapters::PrivacyProvider>>,
@@ -55,7 +56,7 @@ pub async fn shield_handler(
     };
 
     // 4. Execution
-    let result = provider.shield(payload, state.keystore.clone()).await
+    let result = provider.shield(payload, state.keystore.clone(), state.rpc.clone()).await
         .map_err(|e| {
             let db = state.db.lock().unwrap();
             let _ = db.update_status(&task_id, "Failed", None);
@@ -81,7 +82,7 @@ pub async fn swap_handler(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<SwapRequest>,
 ) -> Result<Json<SwapResponse>, (StatusCode, String)> {
-    let result = state.swap_provider.swap(payload, state.keystore.clone()).await
+    let result = state.swap_provider.swap(payload, state.keystore.clone(), state.rpc.clone()).await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))?;
     
     Ok(Json(result))
@@ -91,7 +92,7 @@ pub async fn pay_handler(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<PayRequest>,
 ) -> Result<Json<PayResponse>, (StatusCode, String)> {
-    let result = state.pay_provider.pay(payload, state.keystore.clone()).await
+    let result = state.pay_provider.pay(payload, state.keystore.clone(), state.rpc.clone()).await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e))?;
     
     Ok(Json(result))

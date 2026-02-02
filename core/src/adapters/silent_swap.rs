@@ -1,8 +1,7 @@
-use crate::adapters::{SwapProvider, SwapRequest, SwapResponse};
+use crate::adapters::{SwapProvider, SwapRequest, SwapResponse, rpc::ReliableClient};
 use crate::keystore::PrismKeystore;
 use async_trait::async_trait;
 use std::sync::Arc;
-use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
     transaction::Transaction,
     signer::Signer,
@@ -14,19 +13,13 @@ pub struct SilentSwapAdapter;
 
 #[async_trait]
 impl SwapProvider for SilentSwapAdapter {
-    async fn swap(&self, req: SwapRequest, keystore: Arc<PrismKeystore>) -> Result<SwapResponse, String> {
-        let rpc_url = "https://api.devnet.solana.com".to_string();
-        let client = RpcClient::new(rpc_url);
-        
+    async fn swap(&self, req: SwapRequest, keystore: Arc<PrismKeystore>, rpc: Arc<ReliableClient>) -> Result<SwapResponse, String> {
         let from_pubkey = keystore.main_keypair.pubkey();
         
         println!("🔄 [SilentSwap] Executing private swap: {} {} -> {}", 
             req.amount_lamports, req.from_token, req.to_token);
 
-        // In a real implementation, we would use SilentSwap's Program ID
-        // and construct the specific swap instructions.
-        
-        let recent_blockhash = client.get_latest_blockhash()
+        let recent_blockhash = rpc.get_client().get_latest_blockhash()
             .map_err(|e| format!("Failed to get blockhash: {}", e))?;
 
         // Simulating a swap via a transfer to a vault (placeholder)
@@ -44,8 +37,7 @@ impl SwapProvider for SilentSwapAdapter {
         
         tx.sign(&[&keystore.main_keypair], recent_blockhash);
 
-        let signature = client.send_and_confirm_transaction(&tx)
-            .map_err(|e| format!("Swap transaction failed: {}", e))?;
+        let signature = rpc.send_transaction_reliable(&tx)?;
 
         // Mocking return amounts
         let to_amount = (req.amount_lamports as f64 * 0.99) as u64; // 1% slippage/fee mock
