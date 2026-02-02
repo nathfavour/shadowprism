@@ -466,17 +466,139 @@ var botCmd = &cobra.Command{
 
 		
 
-										return c.Send(fmt.Sprintf("✅ *Swap Confirmed!*\n\n📤 *From:* `%.2f SOL` \n📥 *To:* `%.2f USDC` \n🔗 *TX:* `%v` \n🛡️ *Adapter:* `SilentSwap` %s", amountSOL, float64(res["to_amount"].(float64))/1e9, res["tx_hash"], path), tele.ModeMarkdown)
+															return c.Send(fmt.Sprintf("✅ *Swap Confirmed!*\n\n📤 *From:* `%.2f SOL` \n📥 *To:* `%.2f USDC` \n🔗 *TX:* `%v` \n🛡️ *Adapter:* `SilentSwap` %s", amountSOL, float64(res["to_amount"].(float64))/1e9, res["tx_hash"], path), tele.ModeMarkdown)
 
 		
 
-									})
+										
 
 		
 
-					
+														})
 
-				b.Handle("/monitor", func(c tele.Context) error {
+		
+
+										
+
+		
+
+														b.Handle("/pay", func(c tele.Context) error {
+
+		
+
+															args := c.Args()
+
+		
+
+															if len(args) < 2 {
+
+		
+
+																return c.Send("💡 Usage: `/pay [merchant_id] [amount]`\nExample: `/pay SPayX... 0.5`", tele.ModeMarkdown)
+
+		
+
+															}
+
+		
+
+										
+
+		
+
+															merchant := args[0]
+
+		
+
+															amountSOL, _ := strconv.ParseFloat(args[1], 64)
+
+		
+
+										
+
+		
+
+															c.Send("💳 *Initiating Private Settlement via Starpay...*")
+
+		
+
+										
+
+		
+
+															res, err := client.Pay(uint64(amountSOL*1e9), merchant)
+
+		
+
+															if err != nil {
+
+		
+
+																return c.Send("❌ Payment failed: " + err.Error())
+
+		
+
+															}
+
+		
+
+										
+
+		
+
+															receipt := fmt.Sprintf("🕶️ *PRIVATE GHOST RECEIPT*\n"+
+
+		
+
+																"`--------------------------`\n"+
+
+		
+
+																"MERCHANT: `%s...`\n"+
+
+		
+
+																"AMOUNT:   `%.4f SOL`\n"+
+
+		
+
+																"STATUS:   `ENCRYPTED`\n"+
+
+		
+
+																"REF ID:   `%s`\n"+
+
+		
+
+																"`--------------------------`",
+
+		
+
+																merchant[:8], amountSOL, res["receipt_id"])
+
+		
+
+										
+
+		
+
+															return c.Send(receipt, tele.ModeMarkdown)
+
+		
+
+														})
+
+		
+
+										
+
+		
+
+														b.Handle("/monitor", func(c tele.Context) error {
+
+		
+
+										
 					c.Send("📡 *ShadowPrism Stealth Feed Activated*\nListening to system bus...")
 					
 					steps := []string{
