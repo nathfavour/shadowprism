@@ -417,6 +417,46 @@ var botCmd = &cobra.Command{
 
 				})
 
+				b.Handle("/chat", func(c tele.Context) error {
+					pa := agent.NewPrismAgent()
+					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+					defer cancel()
+
+					input := c.Args()
+					if len(input) == 0 {
+						return c.Send("🤖 *ShadowPrism AI Assistant*\nHow can I help you with your privacy today?", tele.ModeMarkdown)
+					}
+
+					resp, _ := pa.Talk(ctx, strings.Join(input, " "))
+					return c.Send("🤖 " + resp)
+				})
+
+				b.Handle("/agent", func(c tele.Context) error {
+					args := c.Args()
+					if len(args) > 1 && args[0] == "settle" {
+						amountSOL, _ := strconv.ParseFloat(args[1], 64)
+						lamports := uint64(amountSOL * 1e9)
+						
+						c.Send("🛰️ *Autonomous Settlement Triggered...*\nAgent-to-Agent Handshake in progress.")
+						
+						res, err := client.Shield(lamports, "PNPVau1t11111111111111111111111111111111111", "privacy_cash", false)
+						if err != nil {
+							return c.Send("❌ Agent Settlement failed: " + err.Error())
+						}
+
+						ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+						defer cancel()
+						resp, _ := pa.Talk(ctx, fmt.Sprintf("An agent just autonomously settled %f SOL. Give a technical report log summary.", amountSOL))
+
+						return c.Send(fmt.Sprintf("✅ *Settlement Successful*\n\nHash: `%s`\n\n🤖 *Agent Report:* %s", res["tx_hash"], resp), tele.ModeMarkdown)
+					}
+
+					return c.Send("🛰️ *PNP Agent-to-Agent Portal*\n\n" +
+						"Status: `Listening`\n" +
+						"Last Ping: `Agent-772 (Discovery)`\n\n" +
+						"To trigger an autonomous agent settlement, use: `/agent settle [amount]`", tele.ModeMarkdown)
+				})
+
 				b.Handle(tele.OnText, func(c tele.Context) error {
 					ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 					defer cancel()

@@ -6,6 +6,23 @@ ShadowPrism integrates a suite of specialized privacy protocols into a unified C
 
 ---
 
+## 🤖 AI & Autonomous Agent Integration
+
+ShadowPrism is more than a CLI; it's an AI-native privacy layer.
+
+### **Current Capabilities**
+*   **Conversational AI:** Integrated ShadowPrism AI Assistant (powered by `vibeaura`) providing real-time privacy advice, market sentiment, and technical guidance.
+*   **Context-Aware Hints:** Every CLI command (`shield`, `swap`, `pay`) is followed by an intelligent AI insight tailored to the operation performed.
+*   **Autonomous PNP Agent:** A dedicated background mode (`agent-listen`) that scans for and fulfills autonomous settlement requests without human intervention.
+*   **Agent-to-Agent Portal:** Secure Telegram interface (`/agent`) for managing and simulating cross-agent liquidity flows via the PNP protocol.
+
+### **Future Roadmap**
+*   **Neural Routing:** AI-driven path optimization to select the most private and cost-effective mix of protocols based on network congestion.
+*   **Zero-Knowledge Proof Generation:** Offloading ZK-proof computation to autonomous sidecar agents for mobile performance.
+*   **Predictive Privacy:** Pre-emptive shielding of funds based on predicted user interaction patterns.
+
+---
+
 ## 🚀 Quick Install
 
 Install ShadowPrism seamlessly with one command:
