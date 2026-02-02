@@ -15,6 +15,7 @@ pub struct ShieldResponse {
     pub status: String,
     pub tx_hash: String,
     pub provider: String,
+    pub note: Option<String>,
 }
 
 #[async_trait]

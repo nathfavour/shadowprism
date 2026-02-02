@@ -15,11 +15,16 @@ import (
 var guiCmd = &cobra.Command{
 	Use:   "gui",
 	Short: "Launch the ShadowPrism TUI",
-	Run: func(cmd *cobra.Command, args []string) {
-		authToken := "dev-token-123"
-		manager := sidecar.NewManager(42069, authToken)
-		
-		cm, err := sidecar.NewConfigManager()
+	        Run: func(cmd *cobra.Command, args []string) {
+	                authToken := "dev-token-123"
+	                passphrase := os.Getenv("PRISM_PASSPHRASE")
+	                if passphrase == "" {
+	                        fmt.Println("❌ Error: PRISM_PASSPHRASE not set. It is required to unlock the secure keystore.")
+	                        os.Exit(1)
+	                }
+	
+	                manager := sidecar.NewManager(42069, authToken, passphrase)
+			cm, err := sidecar.NewConfigManager()
 		if err != nil {
 			fmt.Printf("❌ Error: %v\n", err)
 			os.Exit(1)

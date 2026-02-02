@@ -173,10 +173,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.lastStatus = msg
 	case historyMsg:
 		m.lastHistory = msg
-	case shieldResultMsg:
-		m.isShielding = false
-		m.shieldResult = fmt.Sprintf("Success! TX: %s", msg["tx_hash"])
-		return m, m.fetchHistory()
+	        case shieldResultMsg:
+	                m.isShielding = false
+	                note := ""
+	                if n, ok := msg["note"].(string); ok && n != "" {
+	                        note = fmt.Sprintf("\n🔑 Note: %s", n)
+	                }
+	                m.shieldResult = fmt.Sprintf("Success! TX: %s%s", msg["tx_hash"], note)
+	                return m, m.fetchHistory()
+	
 	case tickMsg:
 		return m, tea.Batch(m.fetchStatus(), m.fetchHistory(), m.tick())
 	case error:

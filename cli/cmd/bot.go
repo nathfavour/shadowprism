@@ -32,8 +32,23 @@ var botCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		authToken := "dev-token-123"
-		manager := sidecar.NewManager(42069, authToken)
+		                authToken := "dev-token-123"
+
+		                passphrase := os.Getenv("PRISM_PASSPHRASE")
+
+		                if passphrase == "" {
+
+		                        fmt.Println("❌ Error: PRISM_PASSPHRASE not set. It is required to unlock the secure keystore.")
+
+		                        os.Exit(1)
+
+		                }
+
+		
+
+		                manager := sidecar.NewManager(42069, authToken, passphrase)
+
+		
 		socketPath := cm.GetSocketPath()
 		
 		fmt.Println("🚀 Starting ShadowPrism Core for Bot Mode...")
@@ -93,11 +108,27 @@ var botCmd = &cobra.Command{
 				SetResult(&result).
 				Post("/v1/shield")
 
-			if err != nil {
-				return c.Send("❌ Shielding failed: Core communication error.")
-			}
+			                        if err != nil {
 
-			return c.Send(fmt.Sprintf("✅ *Shield Success!*\n\n🔗 *TX:* `%v` \n🛡️ *Provider:* %v", result["tx_hash"], result["provider"]), tele.ModeMarkdown)
+			                                return c.Send("❌ Shielding failed: Core communication error.")
+
+			                        }
+
+			
+
+			                        note := "N/A"
+
+			                        if n, ok := result["note"].(string); ok {
+
+			                                note = n
+
+			                        }
+
+			
+
+			                        return c.Send(fmt.Sprintf("✅ *Shield Success!*\n\n🔗 *TX:* `%v` \n🛡️ *Provider:* %v\n🔑 *Note:* `%v`", result["tx_hash"], result["provider"], note), tele.ModeMarkdown)
+
+			
 		})
 
 		fmt.Println("🤖 Telegram Bot is now online!")
