@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"strconv"
+	"time"
 
+	"github.com/nathfavour/shadowprism/cli/internal/agent"
 	"github.com/nathfavour/shadowprism/cli/internal/sidecar"
 	"github.com/spf13/cobra"
 )
@@ -20,6 +23,10 @@ var payCmd = &cobra.Command{
 			return
 		}
 
+		pa := agent.NewPrismAgent()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
 		cm, _ := sidecar.NewConfigManager()
 		socketPath := cm.GetSocketPath()
 		client := sidecar.NewCoreClient(socketPath, "dev-token-123")
@@ -35,6 +42,10 @@ var payCmd = &cobra.Command{
 		fmt.Printf("✅ Payment Successful!\n")
 		fmt.Printf("🔗 TX: %s\n", res["tx_hash"])
 		fmt.Printf("🧾 Receipt ID: %s\n", res["receipt_id"])
+
+		// Agent feedback
+		resp, _ := pa.Talk(ctx, fmt.Sprintf("The user just paid %d lamports to merchant %s. Give a professional receipt confirmation.", amount, merchant))
+		pa.DisplayResponse(resp)
 	},
 }
 

@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"strconv"
+	"time"
 
+	"github.com/nathfavour/shadowprism/cli/internal/agent"
 	"github.com/nathfavour/shadowprism/cli/internal/sidecar"
 	"github.com/spf13/cobra"
 )
@@ -24,6 +27,10 @@ var swapCmd = &cobra.Command{
 			return
 		}
 
+		pa := agent.NewPrismAgent()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
 		cm, _ := sidecar.NewConfigManager()
 		socketPath := cm.GetSocketPath()
 		authToken := "dev-token-123" // In production, this is managed by the sidecar manager
@@ -41,6 +48,10 @@ var swapCmd = &cobra.Command{
 		fmt.Printf("✅ Swap Confirmed!\n")
 		fmt.Printf("🔗 TX: %s\n", res["tx_hash"])
 		fmt.Printf("💰 Received: %v %s\n", res["to_amount"], toToken)
+
+		// Agent feedback
+		resp, _ := pa.Talk(ctx, fmt.Sprintf("The user just swapped %d %s for %s. Mention the slippage or privacy benefits.", amount, fromToken, toToken))
+		pa.DisplayResponse(resp)
 	},
 }
 

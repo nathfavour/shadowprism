@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"strconv"
+	"time"
 
+	"github.com/nathfavour/shadowprism/cli/internal/agent"
 	"github.com/nathfavour/shadowprism/cli/internal/sidecar"
 	"github.com/spf13/cobra"
 )
@@ -25,14 +28,15 @@ var shieldCmd = &cobra.Command{
 		}
 		dest := args[1]
 
+		pa := agent.NewPrismAgent()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
 		cm, _ := sidecar.NewConfigManager()
 		socketPath := cm.GetSocketPath()
 		client := sidecar.NewCoreClient(socketPath, "dev-token-123")
 
 		fmt.Printf("🕵️  Initiating Privacy Shield for %d lamports...\n", amount)
-		
-		// Map strategy to correct provider name if needed
-		// Here we just pass it through
 		
 		res, err := client.Shield(amount, dest, shieldStrategy, shieldForce)
 		if err != nil {
@@ -46,6 +50,10 @@ var shieldCmd = &cobra.Command{
 		if note, ok := res["note"].(string); ok && note != "" {
 			fmt.Printf("🔑 Note: %s (Stored in local DB)\n", note)
 		}
+
+		// Agent recommendation
+		resp, _ := pa.Talk(ctx, fmt.Sprintf("The user just shielded %d lamports to %s. Give a professional confirmation and a small tip.", amount, dest))
+		pa.DisplayResponse(resp)
 	},
 }
 
