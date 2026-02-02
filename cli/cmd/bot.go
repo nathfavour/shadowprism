@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/nathfavour/shadowprism/cli/internal/sidecar"
@@ -79,50 +80,143 @@ var botCmd = &cobra.Command{
 			return c.Send("🛡️ *Welcome to ShadowPrism*\nYour privacy-first Solana sidecar is active.\n\nCommands:\n/status - Check engine health\n/shield [amount] [address] - Anonymize SOL", tele.ModeMarkdown)
 		})
 
-		b.Handle("/status", func(c tele.Context) error {
-			status, err := client.GetStatus()
-			if err != nil {
-				return c.Send("❌ Core Engine is unreachable.")
-			}
-			return c.Send(fmt.Sprintf("✅ *System Status*\nEngine: %v\nProtocol: %v\nStatus: %v", status["engine"], status["protocol"], status["status"]), tele.ModeMarkdown)
-		})
+				b.Handle("/status", func(c tele.Context) error {
 
-		b.Handle("/shield", func(c tele.Context) error {
-			// Basic parsing: /shield 1.0 ADDRESS
-			args := c.Args()
-			if len(args) < 2 {
-				return c.Send("Usage: /shield [amount] [destination_address]")
-			}
+					status, err := client.GetStatus()
 
-						c.Send("🕵️ *Initiating Privacy Shield...*\nRouting through Privacy Cash adapters.")
+					if err != nil {
 
-			
+						return c.Send("❌ Core Engine is unreachable.")
 
-						res, err := client.Shield(1000000000, args[1], "mix_standard", false)
+					}
 
-			
+					return c.Send(fmt.Sprintf("✅ *System Status*\nEngine: %v\nProtocol: %v\nStatus: %v", status["engine"], status["protocol"], status["status"]), tele.ModeMarkdown)
 
-						if err != nil {
+				})
 
-							return c.Send("❌ Shielding failed: Core communication error.")
+		
 
-						}
+				b.Handle("/market", func(c tele.Context) error {
 
-			
+					res, err := client.GetMarket()
 
-						note := "N/A"
+					if err != nil {
 
-						if n, ok := res["note"].(string); ok {
+						return c.Send("❌ Failed to fetch market data.")
 
-							note = n
+					}
 
-						}
+					return c.Send(fmt.Sprintf("📊 *Market Data (via Encrypt.trade)*\nAsset: %v\nPrice: $%v USD", res["asset"], res["price_usd"]), tele.ModeMarkdown)
 
-			
+				})
 
-						return c.Send(fmt.Sprintf("✅ *Shield Success!*\n\n🔗 *TX:* `%v` \n🛡️ *Provider:* %v\n🔑 *Note:* `%v`", res["tx_hash"], res["provider"], note), tele.ModeMarkdown)
+		
 
-					})
+				b.Handle("/shield", func(c tele.Context) error {
+
+					args := c.Args()
+
+					if len(args) < 2 {
+
+						return c.Send("Usage: /shield [amount] [destination_address]")
+
+					}
+
+		
+
+					c.Send("🕵️ *Initiating Privacy Shield...*\nRouting through Privacy Cash adapters.")
+
+		
+
+					amount, _ := strconv.ParseUint(args[0], 10, 64)
+
+					res, err := client.Shield(amount, args[1], "privacy_cash", false)
+
+		
+
+					if err != nil {
+
+						return c.Send("❌ Shielding failed: " + err.Error())
+
+					}
+
+		
+
+					note := "N/A"
+
+					if n, ok := res["note"].(string); ok {
+
+						note = n
+
+					}
+
+		
+
+					return c.Send(fmt.Sprintf("✅ *Shield Success!*\n\n🔗 *TX:* `%v` \n🛡️ *Provider:* %v\n🔑 *Note:* `%v`", res["tx_hash"], res["provider"], note), tele.ModeMarkdown)
+
+				})
+
+		
+
+				b.Handle("/swap", func(c tele.Context) error {
+
+					args := c.Args()
+
+					if len(args) < 3 {
+
+						return c.Send("Usage: /swap [amount] [from] [to]")
+
+					}
+
+		
+
+					amount, _ := strconv.ParseUint(args[0], 10, 64)
+
+					res, err := client.Swap(amount, args[1], args[2])
+
+					if err != nil {
+
+						return c.Send("❌ Swap failed: " + err.Error())
+
+					}
+
+		
+
+					return c.Send(fmt.Sprintf("🔄 *Private Swap Confirmed!*\n\n🔗 *TX:* `%v` \n💰 *Received:* %v %v", res["tx_hash"], res["to_amount"], args[2]), tele.ModeMarkdown)
+
+				})
+
+		
+
+				b.Handle("/pay", func(c tele.Context) error {
+
+					args := c.Args()
+
+					if len(args) < 2 {
+
+						return c.Send("Usage: /pay [merchant_id] [amount]")
+
+					}
+
+		
+
+					amount, _ := strconv.ParseUint(args[1], 10, 64)
+
+					res, err := client.Pay(amount, args[0])
+
+					if err != nil {
+
+						return c.Send("❌ Payment failed: " + err.Error())
+
+					}
+
+		
+
+					return c.Send(fmt.Sprintf("💳 *Private Payment Sent!*\n\n🔗 *TX:* `%v` \n🧾 *Receipt:* `%v`", res["tx_hash"], res["receipt_id"]), tele.ModeMarkdown)
+
+				})
+
+		
 
 			
 
