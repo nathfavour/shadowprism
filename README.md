@@ -2,7 +2,7 @@
 
 **ShadowPrism** is a privacy-first liquidity sidecar for Solana. It acts as an intelligent routing layer that anonymizes on-chain interactions by leveraging a suite of specialized privacy protocols and high-performance infrastructure.
 
-Built for the **Solana Privacy Hackathon 2026**, ShadowPrism integrates 9 different sponsor tracks into a unified CLI and Agent experience.
+ShadowPrism integrates a suite of specialized privacy protocols into a unified CLI and Agent experience for the Solana ecosystem.
 
 ---
 
@@ -20,15 +20,15 @@ curl -fsSL https://raw.githubusercontent.com/nathfavour/shadowprism/main/install
 
 ShadowPrism is designed to maximize privacy across the Solana ecosystem:
 
-1.  **Privacy Cash ($15k):** Core shielded deposits with automated local note management.
-2.  **Radr Labs ($15k):** Encrypted P2P "Ghost" transfers via ShadowWire.
-3.  **Helius ($5k):** High-performance RPC with automated **Smart Fees**.
-4.  **SilentSwap ($5k):** Private token exchange without leaving the shielded context.
-5.  **Starpay ($3.5k):** Private merchant payment gateway for real-world utility.
-6.  **QuickNode ($3k):** Enterprise-grade RPC failover and reliability.
-7.  **PNP ($2.5k):** Autonomous AI Agent payment network with auto-shielding.
-8.  **Range Protocol ($1.5k):** Pre-flight compliance and risk-score firewall.
-9.  **Encrypt.trade ($1k):** Real-time privacy-preserving market data and pricing.
+1.  **Privacy Cash:** Core shielded deposits with automated local note management.
+2.  **Radr Labs:** Encrypted P2P "Ghost" transfers via ShadowWire.
+3.  **Helius:** High-performance RPC with automated **Smart Fees**.
+4.  **SilentSwap:** Private token exchange without leaving the shielded context.
+5.  **Starpay:** Private merchant payment gateway for real-world utility.
+6.  **QuickNode:** Enterprise-grade RPC failover and reliability.
+7.  **PNP:** Autonomous AI Agent payment network with auto-shielding.
+8.  **Range Protocol:** Pre-flight compliance and risk-score firewall.
+9.  **Encrypt.trade:** Real-time privacy-preserving market data and pricing.
 
 ---
 

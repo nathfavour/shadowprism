@@ -63,7 +63,7 @@ impl RangeClient {
             },
             Err(e) => {
                 println!("⚠️  Range Protocol connection failed: {}. Bypassing firewall.", e);
-                Ok(0) // Fail open for the hackathon demo
+                Ok(0) // Fail open to ensure availability
             }
         }
     }

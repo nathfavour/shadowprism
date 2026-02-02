@@ -58,7 +58,7 @@ impl PrivacyProvider for PrivacyCashAdapter {
             accounts: vec![
                 AccountMeta::new(from_pubkey, true),
                 AccountMeta::new(Pubkey::from_str(&req.destination_addr).unwrap_or(program_id), false), // Mixer state account
-                AccountMeta::new_readonly(solana_sdk::system_program::id(), false),
+                AccountMeta::new_readonly(Pubkey::from_str("11111111111111111111111111111111").unwrap(), false),
             ],
             data,
         });

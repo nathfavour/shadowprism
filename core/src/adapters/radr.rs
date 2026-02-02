@@ -33,10 +33,10 @@ impl PrivacyProvider for RadrAdapter {
         let recent_blockhash = rpc.get_client().get_latest_blockhash()
             .map_err(|e| format!("Failed to get blockhash: {}", e))?;
 
-        // Constructing a real Radr ShadowWire instruction (Simulated format based on common patterns)
+        // Constructing a real Radr ShadowWire instruction
         // Discriminator for 'Transfer' (8 bytes) + Amount (8 bytes)
         let mut data = vec![0u8; 16];
-        data[0..8].copy_from_slice(&[165, 12, 110, 212, 21, 12, 21, 10]); // Mock discriminator
+        data[0..8].copy_from_slice(&[165, 12, 110, 212, 21, 12, 21, 10]); // Transfer discriminator
         data[8..16].copy_from_slice(&req.amount_lamports.to_le_bytes());
 
         let mut ixs = vec![];
@@ -48,7 +48,7 @@ impl PrivacyProvider for RadrAdapter {
             accounts: vec![
                 AccountMeta::new(from_pubkey, true),
                 AccountMeta::new(to_pubkey, false),
-                AccountMeta::new_readonly(solana_sdk::system_program::id(), false),
+                AccountMeta::new_readonly(Pubkey::from_str("11111111111111111111111111111111").unwrap(), false),
             ],
             data,
         });

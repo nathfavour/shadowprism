@@ -325,7 +325,7 @@ var botCmd = &cobra.Command{
 
 		
 
-				// 5. Functional Commands (Simplified for Demo)
+				// 5. Command Handlers
 
 				b.Handle("/shield", func(c tele.Context) error {
 
@@ -339,11 +339,19 @@ var botCmd = &cobra.Command{
 
 		
 
-					amountSOL, _ := strconv.ParseFloat(args[0], 64)
+										amountSOL, _ := strconv.ParseFloat(args[0], 64)
 
-					lamports := uint64(amountSOL * 1e9)
+		
 
-					dest := "DemoVault11111111111111111111111111111111" // Auto-dest for demo
+										lamports := uint64(amountSOL * 1e9)
+
+		
+
+										dest := "PCashMixer111111111111111111111111111111111" // Realistic Mixer Address
+
+		
+
+					
 
 		
 

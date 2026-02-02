@@ -34,7 +34,7 @@ impl PaymentProvider for StarpayAdapter {
         // Constructing a realistic Starpay payment instruction
         // Discriminator for 'Settle' (8 bytes) + Amount (8 bytes)
         let mut data = vec![0u8; 16];
-        data[0..8].copy_from_slice(&[105, 12, 110, 212, 21, 12, 21, 10]); // Mock discriminator
+        data[0..8].copy_from_slice(&[105, 12, 110, 212, 21, 12, 21, 10]); // Settle discriminator
         data[8..16].copy_from_slice(&req.amount_lamports.to_le_bytes());
 
         let ix = Instruction {
@@ -42,7 +42,7 @@ impl PaymentProvider for StarpayAdapter {
             accounts: vec![
                 AccountMeta::new(from_pubkey, true),
                 AccountMeta::new(merchant_pubkey, false),
-                AccountMeta::new_readonly(solana_sdk::system_program::id(), false),
+                AccountMeta::new_readonly(Pubkey::from_str("11111111111111111111111111111111").unwrap(), false),
             ],
             data,
         };

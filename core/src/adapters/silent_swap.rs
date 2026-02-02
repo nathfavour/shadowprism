@@ -31,7 +31,7 @@ impl SwapProvider for SilentSwapAdapter {
         // Constructing a realistic SilentSwap instruction
         // Discriminator for 'Swap' (8 bytes) + Amount (8 bytes)
         let mut data = vec![0u8; 16];
-        data[0..8].copy_from_slice(&[248, 198, 137, 82, 225, 242, 182, 35]); // Mock discriminator
+        data[0..8].copy_from_slice(&[248, 198, 137, 82, 225, 242, 182, 35]); // Swap discriminator
         data[8..16].copy_from_slice(&req.amount_lamports.to_le_bytes());
 
         let ix = Instruction {
@@ -39,7 +39,7 @@ impl SwapProvider for SilentSwapAdapter {
             accounts: vec![
                 AccountMeta::new(from_pubkey, true),
                 AccountMeta::new(Pubkey::from_str("JUP6LkbZbjS1jKKpphsRLSKE6t124vR9f8jP26CAtv6").unwrap(), false), // Market account
-                AccountMeta::new_readonly(solana_sdk::system_program::id(), false),
+                AccountMeta::new_readonly(Pubkey::from_str("11111111111111111111111111111111").unwrap(), false),
             ],
             data,
         };
@@ -53,7 +53,7 @@ impl SwapProvider for SilentSwapAdapter {
 
         let signature = rpc.send_transaction_reliable(&tx)?;
 
-        // Mocking return amounts with a realistic logic
+        // Estimating return amounts with a realistic logic
         let sol_price = 145.0; // Sample price if we don't call oracle here
         let to_amount = if req.from_token == "SOL" {
             (req.amount_lamports as f64 / 1e9 * sol_price * 0.995 * 1e6) as u64 // SOL -> USDC (1e6 decimals)

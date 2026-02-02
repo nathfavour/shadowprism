@@ -52,7 +52,6 @@ if [ -d "core" ]; then
 else
     echo -e "${YELLOW}⚠️  Core directory not found. Fetching from repo root logic...${NC}"
     # If not in repo, this part would ideally download a pre-built binary
-    # For this hackathon dev environment, we assume we have the source
     exit 1
 fi
 
