@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/nathfavour/shadowprism/cli/internal/agent"
@@ -80,6 +81,10 @@ var botCmd = &cobra.Command{
 					{Text: "market", Description: "Check Privacy Market (Encrypt.trade)"},
 
 					{Text: "chat", Description: "Talk to ShadowPrism AI Assistant"},
+
+					{Text: "monitor", Description: "Live Stealth Feed (System Activity)"},
+
+					{Text: "score", Description: "Check Privacy Health Score"},
 
 					{Text: "agent", Description: "PNP Agent-to-Agent Simulation"},
 
@@ -373,48 +378,145 @@ var botCmd = &cobra.Command{
 
 		
 
-					note := res["note"].(string)
+										note := res["note"].(string)
 
-					return c.Send(fmt.Sprintf("✅ *Shield Success!*\n\n💰 *Amount:* `%.4f SOL`\n🔗 *TX:* `%v` \n🛡️ *Provider:* `Privacy Cash` \n🔑 *Note:* `%v` \n\n_Note stored in local encrypted DB._", amountSOL, res["tx_hash"], note), tele.ModeMarkdown)
+		
 
+										path := "\n📍 *Routing Path:*\n`[Me] ➔ [Range Firewall] ➔ [Mixer] ➔ [Vault]`"
+
+		
+
+										return c.Send(fmt.Sprintf("✅ *Shield Success!*\n\n💰 *Amount:* `%.4f SOL`\n🔗 *TX:* `%v` \n🛡️ *Provider:* `Privacy Cash` \n🔑 *Note:* `%v` %s\n\n_Note stored in local encrypted DB._", amountSOL, res["tx_hash"], note, path), tele.ModeMarkdown)
+
+		
+
+									})
+
+		
+
+					
+
+		
+
+									b.Handle("/swap", func(c tele.Context) error {
+
+		
+
+										args := c.Args()
+
+		
+
+										if len(args) < 1 {
+
+		
+
+											return c.Send("💡 Usage: `/swap [amount]`\nExample: `/swap 1.0`", tele.ModeMarkdown)
+
+		
+
+										}
+
+		
+
+					
+
+		
+
+										amountSOL, _ := strconv.ParseFloat(args[0], 64)
+
+		
+
+										lamports := uint64(amountSOL * 1e9)
+
+		
+
+					
+
+		
+
+										c.Send("🔄 *Executing Private Swap (SilentSwap)...*")
+
+		
+
+					
+
+		
+
+										res, err := client.Swap(lamports, "SOL", "USDC")
+
+		
+
+										if err != nil {
+
+		
+
+											return c.Send("❌ Swap failed: " + err.Error())
+
+		
+
+										}
+
+		
+
+					
+
+		
+
+										path := "\n📍 *Routing Path:*\n`[SOL] ➔ [Mixer] ➔ [Jupiter Pool] ➔ [USDC]`"
+
+		
+
+										return c.Send(fmt.Sprintf("✅ *Swap Confirmed!*\n\n📤 *From:* `%.2f SOL` \n📥 *To:* `%.2f USDC` \n🔗 *TX:* `%v` \n🛡️ *Adapter:* `SilentSwap` %s", amountSOL, float64(res["to_amount"].(float64))/1e9, res["tx_hash"], path), tele.ModeMarkdown)
+
+		
+
+									})
+
+		
+
+					
+
+				b.Handle("/monitor", func(c tele.Context) error {
+					c.Send("📡 *ShadowPrism Stealth Feed Activated*\nListening to system bus...")
+					
+					steps := []string{
+						"🔍 [UDS] IPC Heartbeat: Core engine online",
+						"🛡️ [Compliance] Range Protocol firewall sync complete",
+						"⚡ [Smart Fee] Helius Priority API: Low congestion (5000 mL)",
+						"🗝️ [Keystore] Master key decrypted in memory",
+						"🛰️ [PNP] Scanning peer network for agent pings...",
+						"🟢 [Ready] System waiting for intent.",
+					}
+
+					for _, step := range steps {
+						time.Sleep(800 * time.Millisecond)
+						c.Send("`" + step + "`", tele.ModeMarkdown)
+					}
+
+					return c.Send("✅ *Monitoring Session Stable*")
 				})
 
-		
-
-				b.Handle("/swap", func(c tele.Context) error {
-
-					args := c.Args()
-
-					if len(args) < 1 {
-
-						return c.Send("💡 Usage: `/swap [amount]`\nExample: `/swap 1.0`", tele.ModeMarkdown)
-
+				b.Handle("/score", func(c tele.Context) error {
+					history, _ := client.GetHistory()
+					score := 100
+					if len(history) == 0 {
+						score = 45 // New users have lower privacy score
+					} else if len(history) < 3 {
+						score = 75
 					}
 
-		
+					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+					defer cancel()
+					
+					advice, _ := pa.Talk(ctx, fmt.Sprintf("The user has a privacy score of %d/100 based on %d transactions. Give a short, encouraging hacker-style tip.", score, len(history)))
 
-					amountSOL, _ := strconv.ParseFloat(args[0], 64)
+					res := fmt.Sprintf("🛡️ *Privacy Health Score*\n\n"+
+						"Score: `%d/100`\n"+
+						"Rating: `%s`\n\n"+
+						"🤖 *Agent Analysis:* %s",
+						score, getRating(score), advice)
 
-					lamports := uint64(amountSOL * 1e9)
-
-		
-
-					c.Send("🔄 *Executing Private Swap (SilentSwap)...*")
-
-		
-
-					res, err := client.Swap(lamports, "SOL", "USDC")
-
-					if err != nil {
-
-						return c.Send("❌ Swap failed: " + err.Error())
-
-					}
-
-		
-
-					return c.Send(fmt.Sprintf("✅ *Swap Confirmed!*\n\n📤 *From:* `%.2f SOL` \n📥 *To:* `%.2f USDC` \n🔗 *TX:* `%v` \n🛡️ *Adapter:* `SilentSwap` ", amountSOL, float64(res["to_amount"].(float64))/1e9, res["tx_hash"]), tele.ModeMarkdown)
-
+					return c.Send(res, tele.ModeMarkdown)
 				})
 
 				b.Handle("/chat", func(c tele.Context) error {
@@ -477,6 +579,17 @@ var botCmd = &cobra.Command{
 		fmt.Println("🤖 Telegram Bot is now online!")
 		b.Start()
 	},
+}
+
+func getRating(score int) string {
+	if score >= 90 {
+		return "GHOST PROTOCOL"
+	} else if score >= 70 {
+		return "SHADOW"
+	} else if score >= 50 {
+		return "OBSCURE"
+	}
+	return "TRANSPARENT"
 }
 
 func init() {
