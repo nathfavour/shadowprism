@@ -1,5 +1,5 @@
-use solana_sdk::signature::{Keypair, read_keypair_file};
-use std::path::{Path, PathBuf};
+use solana_sdk::signature::Keypair;
+use std::path::Path;
 use anyhow::{Result, Context, anyhow};
 use aes_gcm::{
     aead::{Aead, KeyInit},

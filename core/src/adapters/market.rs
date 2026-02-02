@@ -1,22 +1,16 @@
 use reqwest::Client;
-use serde::Deserialize;
 use std::time::{Duration, Instant};
 use std::sync::Mutex;
 
-#[derive(Deserialize, Debug)]
-struct EncryptTradePrice {
-    price: f64,
-}
-
 pub struct MarketOracle {
-    client: Client,
+    _client: Client,
     cache: Mutex<Option<(f64, Instant)>>,
 }
 
 impl MarketOracle {
     pub fn new() -> Self {
         Self {
-            client: Client::builder()
+            _client: Client::builder()
                 .timeout(Duration::from_secs(2))
                 .build()
                 .unwrap(),

@@ -41,10 +41,18 @@ echo -e "${BLUE}📦 Compiling ShadowPrism Core (Rust)...${NC}"
 if [ -d "core" ]; then
     cd core
     cargo build --release
+    # Remove existing binary to prevent 'text file busy' errors
+    rm -f "$PRISM_HOME/bin/shadowprism-core"
     cp target/release/shadowprism-core "$PRISM_HOME/bin/"
+    
+    # Prepare for Go embedding
+    mkdir -p ../cli/internal/embed
+    cp target/release/shadowprism-core ../cli/internal/embed/core_bin
     cd ..
 else
-    echo -e "${YELLOW}⚠️  Core directory not found. Are you running this from the repo root?${NC}"
+    echo -e "${YELLOW}⚠️  Core directory not found. Fetching from repo root logic...${NC}"
+    # If not in repo, this part would ideally download a pre-built binary
+    # For this hackathon dev environment, we assume we have the source
     exit 1
 fi
 
@@ -59,6 +67,7 @@ if [ -d "cli" ]; then
     mkdir -p "$INSTALL_DIR"
     
     echo -e "${BLUE}🚚 Installing binary to $INSTALL_DIR...${NC}"
+    rm -f "$INSTALL_DIR/shadowprism"
     cp shadowprism "$INSTALL_DIR/"
     cd ..
 else
