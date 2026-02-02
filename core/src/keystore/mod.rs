@@ -48,7 +48,7 @@ impl PrismKeystore {
         let plaintext = cipher.decrypt(nonce, ciphertext)
             .map_err(|_| anyhow!("Decryption failed - wrong passphrase?"))?;
 
-        let keypair = Keypair::from_bytes(&plaintext)
+        let keypair = Keypair::try_from(plaintext.as_slice())
             .map_err(|e| anyhow!("Invalid keypair data: {}", e))?;
 
         Ok(Self { main_keypair: keypair })

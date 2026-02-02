@@ -35,7 +35,7 @@ impl PrivacyProvider for PrivacyCashAdapter {
         
         // Add Priority Fee (Helius Integration)
         let priority_fee = rpc.get_priority_fee().await;
-        ixs.push(solana_sdk::compute_budget::ComputeBudgetInstruction::set_compute_unit_price(priority_fee));
+        ixs.push(solana_compute_budget_interface::ComputeBudgetInstruction::set_compute_unit_price(priority_fee));
 
         // Add Mixer Deposit
         ixs.push(solana_system_interface::instruction::transfer(
