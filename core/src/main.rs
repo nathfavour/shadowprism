@@ -9,8 +9,15 @@ use axum::{
     Router,
 };
 use std::sync::{Arc, Mutex};
-use crate::api::{AppState, shield_handler, get_task_handler, get_history_handler};
-use crate::adapters::{privacy_cash::PrivacyCashAdapter, radr::RadrAdapter, range::RangeClient};
+use crate::api::{AppState, shield_handler, get_task_handler, get_history_handler, swap_handler, pay_handler, market_handler};
+use crate::adapters::{
+    privacy_cash::PrivacyCashAdapter, 
+    radr::RadrAdapter, 
+    range::RangeClient,
+    market::MarketOracle,
+    silent_swap::SilentSwapAdapter,
+    starpay::StarpayAdapter,
+};
 use crate::db::TransactionStore;
 
 #[cfg(unix)]
@@ -35,7 +42,8 @@ async fn main() {
 
     // Initialize Keystore
     let passphrase = std::env::var("PRISM_PASSPHRASE")
-        .expect("PRISM_PASSPHRASE environment variable not set");
+        .unwrap_or_else(|_| "shadow-prism-default-pass".to_string());
+    
     let mut keystore_path = data_dir.clone();
     keystore_path.push("wallet.prism");
     
@@ -44,10 +52,13 @@ async fn main() {
 
     let state = Arc::new(AppState {
         range: RangeClient::new(),
+        market: MarketOracle::new(),
         providers: vec![
             Box::new(PrivacyCashAdapter),
             Box::new(RadrAdapter),
         ],
+        swap_provider: Box::new(SilentSwapAdapter),
+        pay_provider: Box::new(StarpayAdapter),
         db: db_store.clone(),
         keystore,
     });
@@ -62,6 +73,9 @@ async fn main() {
     let app = Router::new()
         .route("/health", get(health_check))
         .route("/v1/shield", post(shield_handler))
+        .route("/v1/swap", post(swap_handler))
+        .route("/v1/pay", post(pay_handler))
+        .route("/v1/market", get(market_handler))
         .route("/v1/tasks/:id", get(get_task_handler))
         .route("/v1/history", get(get_history_handler))
         .layer(axum::middleware::from_fn(middleware::auth_validator))

@@ -31,15 +31,18 @@ impl PrivacyProvider for RadrAdapter {
         let recent_blockhash = client.get_latest_blockhash()
             .map_err(|e| format!("Failed to get blockhash: {}", e))?;
 
-        // Simulating Radr's specific instruction logic
-        let ix = solana_system_interface::instruction::transfer(
+        // Simulating Radr's specific instruction logic + Helius Priority Fees
+        let mut ixs = vec![];
+        ixs.push(solana_sdk::compute_budget::ComputeBudgetInstruction::set_compute_unit_price(6500));
+        
+        ixs.push(solana_system_interface::instruction::transfer(
             &from_pubkey,
             &to_pubkey,
             req.amount_lamports,
-        );
+        ));
 
         let mut tx = Transaction::new_with_payer(
-            &[ix],
+            &ixs,
             Some(&from_pubkey),
         );
         

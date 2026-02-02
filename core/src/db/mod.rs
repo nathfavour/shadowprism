@@ -14,6 +14,7 @@ pub struct TransactionRecord {
     pub status: String, // Pending, Broadcast, Confirmed, Failed
     pub tx_hash: Option<String>,
     pub provider: String,
+    pub note: Option<String>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -34,6 +35,7 @@ impl TransactionStore {
                 destination TEXT NOT NULL,
                 tx_hash TEXT,
                 provider TEXT NOT NULL,
+                note TEXT,
                 created_at TEXT NOT NULL
             )",
             [],
@@ -63,13 +65,21 @@ impl TransactionStore {
         Ok(())
     }
 
+    pub fn update_note(&self, id: &str, note: &str) -> Result<()> {
+        self.conn.execute(
+            "UPDATE transactions SET note = ?1 WHERE id = ?2",
+            params![note, id],
+        )?;
+        Ok(())
+    }
+
     pub fn get_transaction(&self, id: &str) -> Result<TransactionRecord> {
         self.conn.query_row(
-            "SELECT id, amount_lamports, destination, status, tx_hash, provider, created_at FROM transactions WHERE id = ?1",
+            "SELECT id, amount_lamports, destination, status, tx_hash, provider, note, created_at FROM transactions WHERE id = ?1",
             params![id],
             |row| {
                 let amount_i64: i64 = row.get(1)?;
-                let created_at_str: String = row.get(6)?;
+                let created_at_str: String = row.get(7)?;
                 Ok(TransactionRecord {
                     id: row.get(0)?,
                     amount_lamports: amount_i64 as u64,
@@ -77,6 +87,7 @@ impl TransactionStore {
                     status: row.get(3)?,
                     tx_hash: row.get(4)?,
                     provider: row.get(5)?,
+                    note: row.get(6)?,
                     created_at: DateTime::parse_from_rfc3339(&created_at_str).unwrap().with_timezone(&Utc),
                 })
             },
@@ -85,12 +96,12 @@ impl TransactionStore {
 
     pub fn list_transactions(&self) -> Result<Vec<TransactionRecord>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, amount_lamports, destination, status, tx_hash, provider, created_at FROM transactions ORDER BY created_at DESC LIMIT 50"
+            "SELECT id, amount_lamports, destination, status, tx_hash, provider, note, created_at FROM transactions ORDER BY created_at DESC LIMIT 50"
         )?;
         
         let rows = stmt.query_map([], |row| {
             let amount_i64: i64 = row.get(1)?;
-            let created_at_str: String = row.get(6)?;
+            let created_at_str: String = row.get(7)?;
             Ok(TransactionRecord {
                 id: row.get(0)?,
                 amount_lamports: amount_i64 as u64,
@@ -98,6 +109,7 @@ impl TransactionStore {
                 status: row.get(3)?,
                 tx_hash: row.get(4)?,
                 provider: row.get(5)?,
+                note: row.get(6)?,
                 created_at: DateTime::parse_from_rfc3339(&created_at_str).unwrap().with_timezone(&Utc),
             })
         })?;

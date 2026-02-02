@@ -94,42 +94,37 @@ var botCmd = &cobra.Command{
 				return c.Send("Usage: /shield [amount] [destination_address]")
 			}
 
-			c.Send("🕵️ *Initiating Privacy Shield...*\nRouting through Privacy Cash adapters.")
-
-			payload := map[string]interface{}{
-				"amount_lamports":  1000000000, // Hardcoded for demo
-				"destination_addr": args[1],
-				"strategy":         "mix_standard",
-			}
-
-			var result map[string]interface{}
-			_, err := client.Http.R(). 
-				SetBody(payload).
-				SetResult(&result).
-				Post("/v1/shield")
-
-			                        if err != nil {
-
-			                                return c.Send("❌ Shielding failed: Core communication error.")
-
-			                        }
+						c.Send("🕵️ *Initiating Privacy Shield...*\nRouting through Privacy Cash adapters.")
 
 			
 
-			                        note := "N/A"
-
-			                        if n, ok := result["note"].(string); ok {
-
-			                                note = n
-
-			                        }
+						res, err := client.Shield(1000000000, args[1], "mix_standard", false)
 
 			
 
-			                        return c.Send(fmt.Sprintf("✅ *Shield Success!*\n\n🔗 *TX:* `%v` \n🛡️ *Provider:* %v\n🔑 *Note:* `%v`", result["tx_hash"], result["provider"], note), tele.ModeMarkdown)
+						if err != nil {
+
+							return c.Send("❌ Shielding failed: Core communication error.")
+
+						}
 
 			
-		})
+
+						note := "N/A"
+
+						if n, ok := res["note"].(string); ok {
+
+							note = n
+
+						}
+
+			
+
+						return c.Send(fmt.Sprintf("✅ *Shield Success!*\n\n🔗 *TX:* `%v` \n🛡️ *Provider:* %v\n🔑 *Note:* `%v`", res["tx_hash"], res["provider"], note), tele.ModeMarkdown)
+
+					})
+
+			
 
 		fmt.Println("🤖 Telegram Bot is now online!")
 		b.Start()
