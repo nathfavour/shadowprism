@@ -27,3 +27,4 @@ pub trait PrivacyProvider: Send + Sync {
 pub mod privacy_cash;
 pub mod radr;
 pub mod range;
+pub mod rpc;
